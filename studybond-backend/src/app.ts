@@ -5,6 +5,9 @@ import fastifyJwt from '@fastify/jwt';
 import fastifyRateLimit from '@fastify/rate-limit';
 import prisma, { connectDatabase } from './config/database';
 import { authPlugin } from './modules/auth/auth.plugin';
+import { authenticate } from './shared/decorators/authenticate';
+
+import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
 
 export async function buildApp(): Promise<FastifyInstance> {
     const app = Fastify({
@@ -25,6 +28,14 @@ export async function buildApp(): Promise<FastifyInstance> {
         disableRequestLogging: false,
         trustProxy: true, // Trust X-Forwarded-* headers
     });
+
+    /* ZOD TYPE PROVIDER SETUP
+     * These compilers allow Fastify to use Zod schemas directly for request/response validation.
+     * Without this, Fastify expects JSON Schema format by default.
+     * This enables type-safe validation with automatic TypeScript inference in route handlers.
+     */
+    app.setValidatorCompiler(validatorCompiler);
+    app.setSerializerCompiler(serializerCompiler);
 
     /* Security Headers (Helmet)*/
     await app.register(fastifyHelmet, {
@@ -97,7 +108,17 @@ export async function buildApp(): Promise<FastifyInstance> {
         app.log.error('❌ Failed to connect to database');
         throw error;
     }
+    await app.register(authenticate);
+
+    // Swagger/OpenAPI documentation 
+    const swaggerPlugin = (await import('./plugins/swagger')).default;
+    await app.register(swaggerPlugin);
+
     await app.register(authPlugin);
+
+    // Users module - profile management, stats, account deletion
+    const { usersPlugin } = await import('./modules/users/users.plugin');
+    await app.register(usersPlugin, { prefix: '/api/users' });
 
     /* HEALTH CHECK ENDPOINT */
     app.get('/health', async (_req, _reply) => {
