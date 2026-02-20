@@ -300,6 +300,7 @@ model QuestionReport {
   user        User     @relation(fields: [userId], references: [id])
   question    Question @relation(fields: [questionId], references: [id])
 
+  @@unique([userId, questionId, issueType])
   @@index([status])
   @@index([questionId])
 }
