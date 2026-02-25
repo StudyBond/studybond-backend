@@ -15,8 +15,8 @@ This module handles question bookmarking, allowing users to:
 
 | Rule | Free Users | Premium Users |
 |------|------------|---------------|
-| Bookmark limit | Max 20 | Unlimited |
-| Expiry | 30 days | Never |
+| Bookmark limit | Max 20 | Max 50 |
+| Expiry | 30 days | 30 days |
 | Notes limit | 50 words (~300 chars) | Same |
 
 ---

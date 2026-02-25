@@ -44,18 +44,20 @@ export class BookmarksService {
             throw new AppError('Question not found', 404);
         }
 
-        // Step 3: If free user, check bookmark limit
-        if (!user.isPremium) {
-            const bookmarkCount = await prisma.bookmarkedQuestion.count({
-                where: { userId },
-            });
+        // Step 3: Check bookmark limit (20 for free, 50 for premium)
+        const maxBookmarks = user.isPremium
+            ? BOOKMARK_LIMITS.PREMIUM_USER_MAX_BOOKMARKS
+            : BOOKMARK_LIMITS.FREE_USER_MAX_BOOKMARKS;
 
-            if (bookmarkCount >= BOOKMARK_LIMITS.FREE_USER_MAX_BOOKMARKS) {
-                throw new AppError(
-                    `Free users can only have ${BOOKMARK_LIMITS.FREE_USER_MAX_BOOKMARKS} bookmarks. Upgrade to premium for unlimited bookmarks.`,
-                    403
-                );
-            }
+        const bookmarkCount = await prisma.bookmarkedQuestion.count({
+            where: { userId },
+        });
+
+        if (bookmarkCount >= maxBookmarks) {
+            const message = user.isPremium
+                ? `You have reached the maximum of ${maxBookmarks} bookmarks. Please review and remove old bookmarks to add new ones.`
+                : `Free users can only have ${maxBookmarks} bookmarks. Upgrade to premium for up to ${BOOKMARK_LIMITS.PREMIUM_USER_MAX_BOOKMARKS} bookmarks.`;
+            throw new AppError(message, 403);
         }
 
         // Step 4: Check for duplicate bookmark
@@ -85,10 +87,8 @@ export class BookmarksService {
             }
         }
 
-        // Step 6: Calculate expiry date (30 days for free users, null for premium)
-        const expiresAt = user.isPremium
-            ? null
-            : new Date(Date.now() + BOOKMARK_LIMITS.FREE_USER_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+        // Step 6: Calculate expiry date (30 days for all users)
+        const expiresAt = new Date(Date.now() + BOOKMARK_LIMITS.EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 
         // Step 7: Create the bookmark
         const bookmark = await prisma.bookmarkedQuestion.create({

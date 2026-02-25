@@ -30,7 +30,7 @@ export async function bookmarksRoutes(app: FastifyInstance) {
         schema: {
             body: createBookmarkSchema,
             tags: ['Bookmarks'],
-            description: 'Create a new bookmark for a question. Free users: max 20 bookmarks with 30-day expiry. Premium: unlimited.',
+            description: 'Create a new bookmark for a question. Free users: max 20 bookmarks. Premium: max 50. All bookmarks expire after 30 days.',
             response: {
                 201: bookmarkResponseSchema,
             },

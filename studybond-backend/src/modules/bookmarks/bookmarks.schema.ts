@@ -9,11 +9,12 @@ import { z } from 'zod';
 /**
  * Business rule limits - centralized for easy modification.
  * Free users: max 20 bookmarks, 30-day expiry
- * Premium users: unlimited bookmarks, no expiry
+ * Premium users: max 50 bookmarks, 30-day expiry
  */
 export const BOOKMARK_LIMITS = {
     FREE_USER_MAX_BOOKMARKS: 20,
-    FREE_USER_EXPIRY_DAYS: 30,
+    PREMIUM_USER_MAX_BOOKMARKS: 50,
+    EXPIRY_DAYS: 30,
     NOTES_MAX_CHARS: 300, // ~50 words
 } as const;
 
