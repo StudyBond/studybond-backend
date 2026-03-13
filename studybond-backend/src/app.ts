@@ -124,6 +124,10 @@ export async function buildApp(): Promise<FastifyInstance> {
     const { bookmarksPlugin } = await import('./modules/bookmarks/bookmarks.plugin');
     await app.register(bookmarksPlugin, { prefix: '/api/bookmarks' });
 
+    // Reports module - question issue reporting
+    const { reportsPlugin } = await import('./modules/reports/reports.plugin');
+    await app.register(reportsPlugin, { prefix: '/api/reports' });
+
     /* HEALTH CHECK ENDPOINT */
     app.get('/health', async (_req, _reply) => {
         return {
